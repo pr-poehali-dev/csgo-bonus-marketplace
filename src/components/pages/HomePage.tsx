@@ -2,9 +2,8 @@ import { type Page } from "@/pages/Index";
 import Icon from "@/components/ui/icon";
 import SkinCard from "@/components/SkinCard";
 import { type useSteamAuth } from "@/hooks/useSteamAuth";
+import { usePopularSkins } from "@/hooks/useSteamMarket";
 
-const AK_IMG = "https://cdn.poehali.dev/projects/e58516a7-3979-4b02-9f05-3734eb390930/files/6f50d89b-e5fa-4d6f-9e38-998a9aa02d52.jpg";
-const KNIFE_IMG = "https://cdn.poehali.dev/projects/e58516a7-3979-4b02-9f05-3734eb390930/files/7f68def5-e12c-496a-b672-ede0fe35e272.jpg";
 const AWP_IMG = "https://cdn.poehali.dev/projects/e58516a7-3979-4b02-9f05-3734eb390930/files/1495c5d7-20d4-4b4c-b026-bbe853a5f120.jpg";
 
 const stats = [
@@ -14,21 +13,14 @@ const stats = [
   { label: "Платформ", value: "12", icon: "Globe" },
 ];
 
-const topSkins = [
-  { name: "Asiimov | Factory New", weapon: "AK-47", price: 89.99, oldPrice: 110.00, wear: "Factory New", rarity: "covert" as const, image: AK_IMG, trending: true, discount: 18 },
-  { name: "Doppler Phase 2", weapon: "Karambit", price: 450.00, wear: "Factory New", rarity: "covert" as const, image: KNIFE_IMG, trending: true },
-  { name: "Dragon Lore | FT", weapon: "AWP", price: 1890.00, wear: "Field-Tested", rarity: "covert" as const, image: AWP_IMG },
-  { name: "Hyper Beast | FN", weapon: "M4A1-S", price: 34.50, oldPrice: 42.00, wear: "Factory New", rarity: "classified" as const, image: AK_IMG, discount: 18 },
-  { name: "Fade | FN", weapon: "USP-S", price: 128.00, wear: "Factory New", rarity: "classified" as const, image: KNIFE_IMG },
-  { name: "Printstream | MW", weapon: "Glock-18", price: 55.90, wear: "Minimal Wear", rarity: "classified" as const, image: AWP_IMG },
-];
-
 interface HomePageProps {
   onNavigate: (page: Page) => void;
   auth: ReturnType<typeof useSteamAuth>;
+  onAlert?: (name: string, weapon: string, price: number) => void;
 }
 
-const HomePage = ({ onNavigate, auth }: HomePageProps) => {
+const HomePage = ({ onNavigate, auth, onAlert }: HomePageProps) => {
+  const { skins: topSkins, loading: skinsLoading } = usePopularSkins(6);
   return (
     <div>
       {/* Hero */}
@@ -102,8 +94,8 @@ const HomePage = ({ onNavigate, auth }: HomePageProps) => {
               style={{ background: "radial-gradient(circle, rgba(0,255,136,0.1) 0%, transparent 70%)" }}
             />
             <img
-              src={AWP_IMG}
-              alt="AWP Dragon Lore"
+              src={topSkins[0]?.image || AWP_IMG}
+              alt={topSkins[0]?.name || "AWP Dragon Lore"}
               className="relative w-full max-w-lg object-contain float"
               style={{ filter: "drop-shadow(0 0 40px rgba(0,255,136,0.3))" }}
             />
@@ -150,11 +142,29 @@ const HomePage = ({ onNavigate, auth }: HomePageProps) => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {topSkins.map((skin, i) => (
-            <SkinCard key={i} {...skin} />
-          ))}
-        </div>
+        {skinsLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl h-64 animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {topSkins.map((skin, i) => (
+              <SkinCard
+                key={skin.hash_name || i}
+                name={skin.name}
+                weapon={skin.weapon}
+                price={skin.price}
+                wear={skin.wear}
+                rarity={skin.rarity}
+                image={skin.image}
+                trending={i < 2}
+                onAlert={onAlert}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Features */}

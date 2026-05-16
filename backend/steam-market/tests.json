@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "GET / — 404 маршрут не найден",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 404,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
