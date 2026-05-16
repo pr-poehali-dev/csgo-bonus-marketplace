@@ -1,4 +1,5 @@
 {
+  "price-alerts": "https://functions.poehali.dev/05d81d29-78cb-4b98-925e-d5912930133d",
   "steam-inventory": "https://functions.poehali.dev/ad0d34b6-a718-4aa8-a26b-c5e14229d5ef",
   "steam-auth": "https://functions.poehali.dev/4ab187ac-632f-4bfd-84dd-a4adf9194272"
 }

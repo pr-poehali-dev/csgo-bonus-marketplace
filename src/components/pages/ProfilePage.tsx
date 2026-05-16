@@ -1,12 +1,17 @@
+import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { type useSteamAuth } from "@/hooks/useSteamAuth";
+import { type useAlerts } from "@/hooks/useAlerts";
 
 interface ProfilePageProps {
   auth: ReturnType<typeof useSteamAuth>;
+  alertsHook: ReturnType<typeof useAlerts>;
 }
 
-const ProfilePage = ({ auth }: ProfilePageProps) => {
+const ProfilePage = ({ auth, alertsHook }: ProfilePageProps) => {
   const { user, loading, inventory, inventoryLoading, login, logout } = auth;
+  const { alerts, deleteAlert, toggleAlert } = alertsHook;
+  const [tab, setTab] = useState<"inventory" | "alerts">("inventory");
 
   if (loading) {
     return (
@@ -120,22 +125,116 @@ const ProfilePage = ({ auth }: ProfilePageProps) => {
         ))}
       </div>
 
-      {/* Inventory */}
+      {/* Tabs */}
       <div className="card-dark rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-rajdhani font-bold text-white">Инвентарь CS2</h2>
-          {inventoryLoading && (
-            <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "var(--neon-green)", borderTopColor: "transparent" }} />
+        <div className="flex items-center gap-2 mb-6">
+          {[
+            { id: "inventory", label: "Инвентарь CS2", icon: "Package" },
+            { id: "alerts", label: `Уведомления${alerts.length ? ` (${alerts.length})` : ""}`, icon: "Bell" },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id as "inventory" | "alerts")}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-rajdhani font-bold uppercase tracking-wide transition-all"
+              style={
+                tab === t.id
+                  ? { background: "rgba(0,255,136,0.12)", color: "var(--neon-green)", border: "1px solid rgba(0,255,136,0.3)" }
+                  : { color: "#6b7280", border: "1px solid var(--dark-border)" }
+              }
+            >
+              <Icon name={t.icon} size={14} />
+              {t.label}
+            </button>
+          ))}
+          {inventoryLoading && tab === "inventory" && (
+            <div className="ml-auto w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "var(--neon-green)", borderTopColor: "transparent" }} />
           )}
         </div>
 
-        {inventoryLoading ? (
+        {/* Alerts tab */}
+        {tab === "alerts" && (
+          <div>
+            {alerts.length === 0 ? (
+              <div className="text-center py-12">
+                <Icon name="BellOff" size={40} className="mx-auto mb-3 text-gray-700" />
+                <p className="text-gray-500 font-golos text-sm">Нет активных уведомлений.</p>
+                <p className="text-gray-600 font-golos text-xs mt-1">Наведи на скин в маркетплейсе и нажми 🔔</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {alerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="flex items-center gap-4 rounded-xl px-4 py-3 transition-all"
+                    style={{
+                      background: "var(--dark-bg)",
+                      border: `1px solid ${alert.is_triggered ? "rgba(0,255,136,0.4)" : alert.is_active ? "var(--dark-border)" : "rgba(255,255,255,0.04)"}`,
+                      opacity: alert.is_active ? 1 : 0.5,
+                    }}
+                  >
+                    <div
+                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: alert.is_triggered ? "rgba(0,255,136,0.15)" : "rgba(255,255,255,0.05)",
+                        color: alert.is_triggered ? "var(--neon-green)" : "#6b7280",
+                      }}
+                    >
+                      <Icon name={alert.is_triggered ? "BellRing" : "Bell"} size={16} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-golos text-white truncate">
+                        {alert.skin_weapon && <span className="text-gray-500">{alert.skin_weapon} | </span>}
+                        {alert.skin_name}
+                      </div>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <span className="text-xs font-golos" style={{ color: "var(--neon-green)" }}>
+                          Цель: ${alert.target_price.toFixed(2)}
+                        </span>
+                        {alert.current_price && (
+                          <span className="text-xs text-gray-600 font-golos">
+                            Сейчас: ${alert.current_price.toFixed(2)}
+                          </span>
+                        )}
+                        {alert.is_triggered && (
+                          <span className="text-xs font-rajdhani font-bold px-1.5 py-0.5 rounded" style={{ background: "var(--neon-green)", color: "var(--dark-bg)" }}>
+                            Сработал!
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => toggleAlert(alert.id)}
+                        className="p-1.5 rounded-lg transition-colors"
+                        style={{ color: alert.is_active ? "var(--neon-green)" : "#4b5563" }}
+                        title={alert.is_active ? "Отключить" : "Включить"}
+                      >
+                        <Icon name={alert.is_active ? "ToggleRight" : "ToggleLeft"} size={18} />
+                      </button>
+                      <button
+                        onClick={() => deleteAlert(alert.id)}
+                        className="p-1.5 rounded-lg text-gray-700 hover:text-red-400 transition-colors"
+                        title="Удалить"
+                      >
+                        <Icon name="Trash2" size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+
+
+        {tab === "inventory" && inventoryLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="rounded-xl h-48 animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
             ))}
           </div>
-        ) : inventory.length === 0 ? (
+        ) : tab === "inventory" && inventory.length === 0 ? (
           <div className="text-center py-12">
             <Icon name="Package" size={40} className="mx-auto mb-3 text-gray-700" />
             <p className="text-gray-500 font-golos text-sm">
@@ -151,7 +250,7 @@ const ProfilePage = ({ auth }: ProfilePageProps) => {
               Открыть настройки приватности →
             </a>
           </div>
-        ) : (
+        ) : tab === "inventory" ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {inventory.slice(0, 20).map((item, i) => (
               <div
@@ -184,9 +283,9 @@ const ProfilePage = ({ auth }: ProfilePageProps) => {
               </div>
             ))}
           </div>
-        )}
+        ) : null}
 
-        {inventory.length > 20 && (
+        {tab === "inventory" && inventory.length > 20 && (
           <p className="text-center text-sm text-gray-600 font-golos mt-4">
             Показано 20 из {inventory.length} предметов
           </p>

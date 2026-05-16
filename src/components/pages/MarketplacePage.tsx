@@ -26,7 +26,11 @@ const wears = ["Все", "Factory New", "Minimal Wear", "Field-Tested", "Well-Wo
 const rarities = ["Все", "Тайное", "Засекреченное", "Запрещённое", "Армейское"];
 const sorts = ["Цена ↑", "Цена ↓", "Популярные", "Новые"];
 
-const MarketplacePage = () => {
+interface MarketplacePageProps {
+  onAlert?: (name: string, weapon: string, price: number) => void;
+}
+
+const MarketplacePage = ({ onAlert }: MarketplacePageProps) => {
   const [search, setSearch] = useState("");
   const [weapon, setWeapon] = useState("Все");
   const [sort, setSort] = useState("Популярные");
@@ -152,7 +156,7 @@ const MarketplacePage = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {filtered.map((skin, i) => (
-              <SkinCard key={i} {...skin} />
+              <SkinCard key={i} {...skin} onAlert={onAlert} />
             ))}
           </div>
 

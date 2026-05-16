@@ -7,6 +7,7 @@ interface NavbarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
   auth: ReturnType<typeof useSteamAuth>;
+  alertCount?: number;
 }
 
 const navItems: { id: Page; label: string; icon: string }[] = [
@@ -20,7 +21,7 @@ const navItems: { id: Page; label: string; icon: string }[] = [
   { id: "faq", label: "FAQ", icon: "HelpCircle" },
 ];
 
-const Navbar = ({ activePage, onNavigate, auth }: NavbarProps) => {
+const Navbar = ({ activePage, onNavigate, auth, alertCount = 0 }: NavbarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, login, logout, loading } = auth;
 
@@ -76,6 +77,23 @@ const Navbar = ({ activePage, onNavigate, auth }: NavbarProps) => {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
+          {/* Bell icon with badge */}
+          {user && alertCount > 0 && (
+            <button
+              onClick={() => onNavigate("profile")}
+              className="relative p-2 rounded-lg transition-colors"
+              style={{ color: "var(--neon-green)" }}
+              title={`${alertCount} сработавших алертов`}
+            >
+              <Icon name="Bell" size={18} />
+              <span
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs font-rajdhani font-bold flex items-center justify-center"
+                style={{ background: "var(--neon-orange)", color: "white", fontSize: "10px" }}
+              >
+                {alertCount}
+              </span>
+            </button>
+          )}
           {!loading && (
             user ? (
               <button
