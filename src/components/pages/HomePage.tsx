@@ -2,16 +2,9 @@ import { type Page } from "@/pages/Index";
 import Icon from "@/components/ui/icon";
 import SkinCard from "@/components/SkinCard";
 import { type useSteamAuth } from "@/hooks/useSteamAuth";
-import { usePopularSkins } from "@/hooks/useSteamMarket";
+import { usePopularSkins, useStats } from "@/hooks/useSteamMarket";
 
 const AWP_IMG = "https://cdn.poehali.dev/projects/e58516a7-3979-4b02-9f05-3734eb390930/files/1495c5d7-20d4-4b4c-b026-bbe853a5f120.jpg";
-
-const stats = [
-  { label: "Активных скинов", value: "284K+", icon: "Package" },
-  { label: "Пользователей", value: "120K+", icon: "Users" },
-  { label: "Сделок сегодня", value: "8,430", icon: "TrendingUp" },
-  { label: "Платформ", value: "12", icon: "Globe" },
-];
 
 interface HomePageProps {
   onNavigate: (page: Page) => void;
@@ -21,6 +14,14 @@ interface HomePageProps {
 
 const HomePage = ({ onNavigate, auth, onAlert }: HomePageProps) => {
   const { skins: topSkins, loading: skinsLoading } = usePopularSkins(6);
+  const dbStats = useStats();
+
+  const stats = [
+    { label: "Скинов в базе", value: dbStats.total > 0 ? `${dbStats.total}+` : "—", icon: "Package" },
+    { label: "Типов оружия", value: dbStats.weapons_count > 0 ? String(dbStats.weapons_count) : "—", icon: "Crosshair" },
+    { label: "Сделок сегодня", value: "8,430", icon: "TrendingUp" },
+    { label: "Платформ", value: "12", icon: "Globe" },
+  ];
   return (
     <div>
       {/* Hero */}
