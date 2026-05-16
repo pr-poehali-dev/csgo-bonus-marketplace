@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { type Page } from "@/pages/Index";
 import Icon from "@/components/ui/icon";
+import { type useSteamAuth } from "@/hooks/useSteamAuth";
 
 interface NavbarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
+  auth: ReturnType<typeof useSteamAuth>;
 }
 
 const navItems: { id: Page; label: string; icon: string }[] = [
@@ -18,8 +20,9 @@ const navItems: { id: Page; label: string; icon: string }[] = [
   { id: "faq", label: "FAQ", icon: "HelpCircle" },
 ];
 
-const Navbar = ({ activePage, onNavigate }: NavbarProps) => {
+const Navbar = ({ activePage, onNavigate, auth }: NavbarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, login, logout, loading } = auth;
 
   return (
     <nav
@@ -45,9 +48,7 @@ const Navbar = ({ activePage, onNavigate }: NavbarProps) => {
           >
             SV
           </div>
-          <span
-            className="text-xl font-rajdhani font-bold gradient-text hidden sm:block"
-          >
+          <span className="text-xl font-rajdhani font-bold gradient-text hidden sm:block">
             SkinVault
           </span>
         </button>
@@ -59,16 +60,11 @@ const Navbar = ({ activePage, onNavigate }: NavbarProps) => {
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-golos font-medium transition-all duration-200 ${
-                activePage === item.id
-                  ? "neon-green"
-                  : "text-gray-400 hover:text-white"
+                activePage === item.id ? "" : "text-gray-400 hover:text-white"
               }`}
               style={
                 activePage === item.id
-                  ? {
-                      background: "rgba(0, 255, 136, 0.08)",
-                      color: "var(--neon-green)",
-                    }
+                  ? { background: "rgba(0, 255, 136, 0.08)", color: "var(--neon-green)" }
                   : {}
               }
             >
@@ -80,17 +76,42 @@ const Navbar = ({ activePage, onNavigate }: NavbarProps) => {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
-          <button
-            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-rajdhani font-bold uppercase tracking-wider transition-all duration-200"
-            style={{
-              background: "linear-gradient(135deg, var(--neon-green), var(--neon-cyan))",
-              color: "var(--dark-bg)",
-            }}
-            onClick={() => onNavigate("profile")}
-          >
-            <Icon name="Steam" size={14} fallback="LogIn" />
-            Войти через Steam
-          </button>
+          {!loading && (
+            user ? (
+              <button
+                onClick={() => onNavigate("profile")}
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
+                style={{ border: "1px solid var(--dark-border)" }}
+              >
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.username} className="w-7 h-7 rounded-full" />
+                ) : (
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(0,255,136,0.15)" }}
+                  >
+                    <Icon name="User" size={14} style={{ color: "var(--neon-green)" }} />
+                  </div>
+                )}
+                <span className="text-sm font-golos text-white max-w-[100px] truncate">{user.username}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); logout(); }}
+                  className="ml-1 text-gray-600 hover:text-white transition-colors"
+                  title="Выйти"
+                >
+                  <Icon name="LogOut" size={13} />
+                </button>
+              </button>
+            ) : (
+              <button
+                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-rajdhani font-bold uppercase tracking-wider transition-all duration-200 btn-neon"
+                onClick={login}
+              >
+                <Icon name="LogIn" size={14} />
+                Войти через Steam
+              </button>
+            )
+          )}
 
           <button
             className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white transition-colors"
@@ -112,7 +133,7 @@ const Navbar = ({ activePage, onNavigate }: NavbarProps) => {
               key={item.id}
               onClick={() => { onNavigate(item.id); setMobileOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-golos transition-all ${
-                activePage === item.id ? "neon-green" : "text-gray-400"
+                activePage === item.id ? "" : "text-gray-400"
               }`}
               style={
                 activePage === item.id
@@ -124,6 +145,15 @@ const Navbar = ({ activePage, onNavigate }: NavbarProps) => {
               {item.label}
             </button>
           ))}
+          {!loading && !user && (
+            <button
+              onClick={() => { login(); setMobileOpen(false); }}
+              className="w-full btn-neon mt-2 py-3 rounded-xl text-sm flex items-center justify-center gap-2"
+            >
+              <Icon name="LogIn" size={16} />
+              Войти через Steam
+            </button>
+          )}
         </div>
       )}
     </nav>

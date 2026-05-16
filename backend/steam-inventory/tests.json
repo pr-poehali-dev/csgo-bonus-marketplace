@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Без steam_id — 400",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "С steam_id — 200 и поле items",
+      "method": "GET",
+      "path": "/?steam_id=76561197960287930",
+      "expectedStatus": 200,
+      "expectedBody": {"items": []},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

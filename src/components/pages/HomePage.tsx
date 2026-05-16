@@ -1,6 +1,7 @@
 import { type Page } from "@/pages/Index";
 import Icon from "@/components/ui/icon";
 import SkinCard from "@/components/SkinCard";
+import { type useSteamAuth } from "@/hooks/useSteamAuth";
 
 const AK_IMG = "https://cdn.poehali.dev/projects/e58516a7-3979-4b02-9f05-3734eb390930/files/6f50d89b-e5fa-4d6f-9e38-998a9aa02d52.jpg";
 const KNIFE_IMG = "https://cdn.poehali.dev/projects/e58516a7-3979-4b02-9f05-3734eb390930/files/7f68def5-e12c-496a-b672-ede0fe35e272.jpg";
@@ -24,9 +25,10 @@ const topSkins = [
 
 interface HomePageProps {
   onNavigate: (page: Page) => void;
+  auth: ReturnType<typeof useSteamAuth>;
 }
 
-const HomePage = ({ onNavigate }: HomePageProps) => {
+const HomePage = ({ onNavigate, auth }: HomePageProps) => {
   return (
     <div>
       {/* Hero */}
@@ -199,13 +201,23 @@ const HomePage = ({ onNavigate }: HomePageProps) => {
           <p className="text-gray-400 font-golos mb-8 text-lg">
             Войди через Steam и получи доступ ко всем функциям бесплатно
           </p>
-          <button
-            className="btn-neon px-8 py-4 rounded-xl text-lg flex items-center gap-3 mx-auto glow-green"
-            onClick={() => onNavigate("profile")}
-          >
-            <Icon name="LogIn" size={22} />
-            Войти через Steam
-          </button>
+          {auth.user ? (
+            <button
+              className="btn-neon px-8 py-4 rounded-xl text-lg flex items-center gap-3 mx-auto glow-green"
+              onClick={() => onNavigate("profile")}
+            >
+              <Icon name="User" size={22} />
+              Мой профиль — {auth.user.username}
+            </button>
+          ) : (
+            <button
+              className="btn-neon px-8 py-4 rounded-xl text-lg flex items-center gap-3 mx-auto glow-green"
+              onClick={auth.login}
+            >
+              <Icon name="LogIn" size={22} />
+              Войти через Steam
+            </button>
+          )}
         </div>
       </section>
 
